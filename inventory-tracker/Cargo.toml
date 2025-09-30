@@ -1,0 +1,37 @@
+[package]
+name = "inventory-tracker"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Runtime assíncrono
+tokio = { version = "1.40", features = ["full"] }
+
+# API REST
+axum = "0.7"
+tower = "0.5"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+
+# Serialização / desserialização
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Banco de dados (async + typesafe)
+sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-rustls", "uuid", "chrono"] }
+
+# UUID para IDs de produtos
+uuid = { version = "1", features = ["serde", "v4"] }
+
+# Datas e horários (histórico de vendas, previsões)
+chrono = { version = "0.4", features = ["serde"] }
+
+# Logs
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Previsão (opcional, se quiser ML simples em Rust)
+linfa = "0.7"              # Biblioteca de ML
+linfa-bayes = "0.7"        # Exemplo de algoritmo
+linfa-linear = "0.7"       # Regressão linear
+
+

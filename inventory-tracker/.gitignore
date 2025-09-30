@@ -1,0 +1,36 @@
+# Rust build artifacts
+/target/
+**/*.rs.bk
+
+# Cargo dependency cache
+**/Cargo.lock
+
+# Editor / IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Database files (se usar SQLite)
+*.sqlite
+*.sqlite3
+
+# Optional: binaries
+*.exe
+*.dll
+*.so
+*.dylib
