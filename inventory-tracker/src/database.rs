@@ -17,13 +17,14 @@ use crate::models::Produto;
 use sqlx::{Error as SqlxError, PgPool};
 
     pub async fn db_buscar_produtos(&self, id: i32) -> Result<Option<Produto>, SqlxError> {
-        sqlx::query_as!(
+        let produto_resultado = sqlx::query_as!(
             Produto,
             "SELECT id, nome, estoque, preco FROM produtos WHERE id = $1",
             id
         )
         .fetch_optional(&self.pool)
         .await
+        produto_resultado
     }
 
     pub async fn db_salvar_produto(&self, produto: &Produto) -> Result<(), SqlxError> {
@@ -36,7 +37,12 @@ use sqlx::{Error as SqlxError, PgPool};
         ";
 
         let resultado = sqlx::query(query)
-            
+        .bind(produto.estoque)
+        .bind(&produto.nome)
+        .bind(produto.preco)
+        .bind(produto.id)
+        .execute(&self.pool)
+        .await;
     }
 
     pub fn new(pool: PgPool) -> Self {
