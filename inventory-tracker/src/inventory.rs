@@ -1,5 +1,17 @@
 use crate::models::{ErroEstoque, Produto};
 use crate::database;
+use std::fmt::{self, Display};
+
+pub struct InventoryService {
+    db: Database,
+}
+
+impl InventoryService {
+    pub fn new(db: Database) -> Self {
+        InventoryService { db }
+    }
+}
+
 
 pub fn buscar_produto(id: i32) -> Result<Produto, String> {
     let produto_result = database::db_buscar_produto_por_id(id);
