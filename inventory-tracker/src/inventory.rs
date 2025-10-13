@@ -45,13 +45,15 @@ pub fn remover_estoque(produto: &mut Produto, quantidade: i32) -> Result<(), Err
 }
 
 pub fn realizar_venda(produto_id: i32, quantidade: i32) -> Result<Produto, String> {
-    let mut produto = database::buscar_produto_por_id(produto_id)
-        .map_err(|e| format!("Falha na busca do produto: {:?}", e))?;
+    let pool = self.db.get_pool();
+    let mut produto = self.db.db_buscar_produtos(pool, id).await
+        .map_err(|e| format!("Falha no DB ao buscar: {}", e))?
+        .ok_or_else(|| format!("Produto ID {} não encontrado.", id))?;
 
-    remover_estoque(&mut produto, quantidade)
-        .map_err(|e| format!("Erro ao realizar a venda: {:?}", e))?;
+    Self::remover_estoque(&mut produto, quantidade)
+        .map_err(|e| format!("Erro de venda: {}", e))?;
 
-    database::salvar_produto(&produto)
+    self.db.db_salvar_produto(pool, &produto).await
         .map_err(|e| format!("Falha ao salvar no DB: {}", e))?;
 
     Ok(produto)
