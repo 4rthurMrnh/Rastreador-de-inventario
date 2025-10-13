@@ -10,6 +10,8 @@ impl InventoryService {
     pub fn new(db: Database) -> Self {
         InventoryService { db }
     }
+    let demanda_prevista = predictions::prever_regressao_linear(&historico_vendas)
+        .map_err(|e| format!("Erro no modelo de previsão: {:?}", e))?;
 }
 
 
