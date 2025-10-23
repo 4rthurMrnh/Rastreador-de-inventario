@@ -1,6 +1,7 @@
 use crate::models::{ErroEstoque, Produto};
-use crate::database;
-use std::fmt::{self, Display};
+use crate::database::Database; // Importar a struct Database
+use crate::models::VendaHistorico;
+use crate::prediction; // Importar o módulo de previsão
 
 pub struct InventoryService {
     db: Database,
@@ -10,53 +11,55 @@ impl InventoryService {
     pub fn new(db: Database) -> Self {
         InventoryService { db }
     }
-    let demanda_prevista = predictions::prever_regressao_linear(&historico_vendas)
-        .map_err(|e| format!("Erro no modelo de previsão: {:?}", e))?;
-}
 
-
-pub fn buscar_produto(id: i32) -> Result<Produto, String> {
-    let produto_result = database::db_buscar_produto_por_id(id);
-    map.err(|e| format!("Falha de conexão com o DB: {}", e))?;
-
-    let produto = match produto_result {
-        Some(p) => p,
-        None => return Err(format!("Produto ID {} não encontrado ou não existe.", id)),
-    };
-    Ok(produto)
-}
-
-
-pub fn adicionar_estoque(produto: &mut Produto, quantidade: i32) -> Result<(), ErroEstoque> {
-    if quantidade <= 0 {
-        return Err(ErroEstoque::ValorInvalido);
+    // O código de previsão deve estar dentro de um método.
+    // `historico_vendas` precisa ser passado como argumento.
+    pub async fn prever_demanda(&self, historico_vendas: &[VendaHistorico]) -> Result<f64, String> {
+        let demanda_prevista = prediction::regressao_linear(historico_vendas)
+            .map_err(|e| format!("Erro no modelo de previsão: {:?}", "Erro"))?; // Placeholder para o erro
+        Ok(demanda_prevista)
     }
-    produto.estoque += quantidade;
-    Ok(())
-}
 
-pub fn remover_estoque(produto: &mut Produto, quantidade: i32) -> Result<(), ErroEstoque> {
-    if quantidade <= 0 {
-        return Err(ErroEstoque::ValorInvalido);
+    // Esta função deve ser um método assíncrono do serviço.
+    pub async fn buscar_produto(&self, id: i32) -> Result<Produto, String> {
+        let produto = self.db.db_buscar_produtos(id).await
+            .map_err(|e| format!("Falha de conexão com o DB: {}", e))?
+            .ok_or_else(|| format!("Produto ID {} não encontrado ou não existe.", id))?;
+
+        Ok(produto)
     }
-    if produto.estoque < quantidade {
-        return Err(ErroEstoque::EstoqueInsuficiente);
+
+    // Este método não precisa de `self`, então pode ser um método associado (static).
+    pub fn adicionar_estoque(produto: &mut Produto, quantidade: i32) -> Result<(), ErroEstoque> {
+        if quantidade <= 0 {
+            return Err(ErroEstoque::ValorInvalido);
+        }
+        produto.estoque += quantidade;
+        Ok(())
     }
-    produto.estoque -= quantidade;
-    Ok(())
-}
 
-pub fn realizar_venda(produto_id: i32, quantidade: i32) -> Result<Produto, String> {
-    let pool = self.db.get_pool();
-    let mut produto = self.db.db_buscar_produtos(pool, id).await
-        .map_err(|e| format!("Falha no DB ao buscar: {}", e))?
-        .ok_or_else(|| format!("Produto ID {} não encontrado.", id))?;
+    // Este também pode ser um método associado.
+    pub fn remover_estoque(produto: &mut Produto, quantidade: i32) -> Result<(), ErroEstoque> {
+        if quantidade <= 0 {
+            return Err(ErroEstoque::ValorInvalido);
+        }
+        if produto.estoque < quantidade {
+            return Err(ErroEstoque::EstoqueInsuficiente);
+        }
+        produto.estoque -= quantidade;
+        Ok(())
+    }
 
-    Self::remover_estoque(&mut produto, quantidade)
-        .map_err(|e| format!("Erro de venda: {}", e))?;
+    // Esta função deve ser um método assíncrono do serviço.
+    pub async fn realizar_venda(&self, produto_id: i32, quantidade: i32) -> Result<Produto, String> {
+        let mut produto = self.buscar_produto(produto_id).await?;
 
-    self.db.db_salvar_produto(pool, &produto).await
-        .map_err(|e| format!("Falha ao salvar no DB: {}", e))?;
+        Self::remover_estoque(&mut produto, quantidade)
+            .map_err(|e| format!("Erro de venda: {:?}", e))?;
 
-    Ok(produto)
+        self.db.db_salvar_produto(&produto).await
+            .map_err(|e| format!("Falha ao salvar no DB: {}", e))?;
+
+        Ok(produto)
+    }
 }

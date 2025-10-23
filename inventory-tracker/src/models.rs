@@ -5,7 +5,7 @@ pub struct Produto {
     pub estoque: i32,
 }
 
-pub struct VendaHistoricos {
+pub struct VendaHistorico { // Renamed from VendaHistoricos to VendaHistorico (singular)
     pub id: i32,
     pub produto_id: i32,
     pub data_venda: String,
