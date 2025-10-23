@@ -1,5 +1,5 @@
 use crate::models::{ErroEstoque, Produto};
-use crate::database::Database; // Importar a struct Database
+use crate::database::{Database, inventory_db::DbError}; // Importar a struct Database
 use crate::models::VendaHistorico;
 use crate::prediction; // Importar o módulo de previsão
 
@@ -16,7 +16,7 @@ impl InventoryService {
     // `historico_vendas` precisa ser passado como argumento.
     pub async fn prever_demanda(&self, historico_vendas: &[VendaHistorico]) -> Result<f64, String> {
         let demanda_prevista = prediction::regressao_linear(historico_vendas)
-            .map_err(|e| format!("Erro no modelo de previsão: {:?}", "Erro"))?; // Placeholder para o erro
+            .map_err(|e| format!("Erro no modelo de previsão: {:?}", e))?;
         Ok(demanda_prevista)
     }
 
@@ -27,6 +27,13 @@ impl InventoryService {
             .ok_or_else(|| format!("Produto ID {} não encontrado ou não existe.", id))?;
 
         Ok(produto)
+    }
+
+    // Novo método para buscar histórico de vendas
+    pub async fn buscar_historico_vendas(&self, produto_id: i32) -> Result<Vec<VendaHistorico>, DbError> {
+        // Esta função precisaria ser implementada em `database.rs`
+        // Por enquanto, retornamos um vetor vazio.
+        self.db.db_buscar_historico_vendas(produto_id).await
     }
 
     // Este método não precisa de `self`, então pode ser um método associado (static).
