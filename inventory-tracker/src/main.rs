@@ -1,7 +1,7 @@
 mod database;
 mod inventory;
 mod models;
-mod inventory_handlers;
+mod api;
 mod prediction;
 
 use axum::{
